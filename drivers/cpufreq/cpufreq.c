@@ -659,7 +659,7 @@ cpufreq_freq_attr_ro(affected_cpus);
 cpufreq_freq_attr_rw(scaling_min_freq);
 cpufreq_freq_attr_rw(scaling_max_freq);
 cpufreq_freq_attr_rw(scaling_governor);
-cpufreq_freq_attr_rw(scaling_setspeed)
+cpufreq_freq_attr_rw(scaling_setspeed);
 /* UV table */
 cpufreq_freq_attr_rw(vdd_levels);
 /* UV table */

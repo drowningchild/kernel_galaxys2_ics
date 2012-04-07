@@ -109,22 +109,18 @@ static int exynos_target(struct cpufreq_policy *policy,
 	{
 		struct cpufreq_policy policytemp;
 		memcpy(&policytemp, policy, sizeof(struct cpufreq_policy));
-		if(policytemp.max < freqs.old)
-			policytemp.max = freqs.old;
-		if(policytemp.min > freqs.old)
-			policytemp.min = freqs.old;
+		policytemp.max = freqs.old;
+		policytemp.min = freqs.old;
 		if (cpufreq_frequency_table_target(&policytemp, freq_table,
 						   freqs.old, relation, &old_index)) {
 			ret = -EINVAL;
 			goto out;
 		}
 	} else
-	{
-		if (cpufreq_frequency_table_target(policy, freq_table,
-						   freqs.old, relation, &old_index)) {
-			ret = -EINVAL;
-			goto out;
-		}
+	if (cpufreq_frequency_table_target(policy, freq_table,
+					   freqs.old, relation, &old_index)) {
+		ret = -EINVAL;
+		goto out;
 	}
 
 	if (cpufreq_frequency_table_target(policy, freq_table,
@@ -133,13 +129,9 @@ static int exynos_target(struct cpufreq_policy *policy,
 		goto out;
 	}
 
-	/* prevent freqs going above max policy - netarchy */
-	/* Do this before lock checks or the locks won't behave - A. Dodd */
-	if (freq_table[index].frequency > policy->max) {
-		while (freq_table[index].frequency > policy-> max) {
-			index += 1;
-		}
-	}
+/* prevent freqs going above max policy - originally by netarchy */
+	if(exynos_info->max_current_idx > index)
+		index = exynos_info->max_current_idx;
 
 	/* Need to set performance limitation */
 	if (!exynos_cpufreq_lock_disable && (index > g_cpufreq_lock_level))
@@ -150,13 +142,12 @@ static int exynos_target(struct cpufreq_policy *policy,
 
 #if defined(CONFIG_CPU_EXYNOS4210)
 	/* Do NOT step up max arm clock directly to reduce power consumption */
-//	if (index == exynos_info->max_support_idx && old_index > 4)
-//		index = 4;
-//reach 1200MHz step by step starting from 800MHz -gm
-if(policy->governor->enableSmoothScaling && index <= smooth_target)
-  if(index < old_index) index = min(smooth_target + smooth_offset, old_index - smooth_step);
+	//reach 1200MHz step by step starting from 800MHz -gm
+	if(index <= smooth_target && index < old_index)
+	{
+		index = max(index,min(smooth_target + smooth_offset, old_index - smooth_step));
+	}
 #endif
-
 
 	freqs.new = freq_table[index].frequency;
 	freqs.cpu = policy->cpu;
@@ -258,10 +249,9 @@ int exynos_cpufreq_lock(unsigned int nId,
 	policy = cpufreq_cpu_get(0);
 	freq_table = exynos_info->freq_table;
 
-	//do not lock to higher than max(policymax,1200) -gm
-	enum cpufreq_level_index level;
-	exynos_cpufreq_get_level(policy->max, &level);
-	if(cpufreq_level < L2) cpufreq_level = max(L2,level);
+	//do not lock to higher than max_current_idx or lower than L3 -gm
+	cpufreq_level = max( min(exynos_info->max_current_idx, exynos_info->pll_safe_idx) ,
+							(int)cpufreq_level);
 
 	mutex_lock(&set_cpu_freq_lock);
 	g_cpufreq_lock_id |= (1 << nId);
@@ -504,20 +494,16 @@ static int exynos_cpufreq_notifier_event(struct notifier_block *this,
 			mutex_lock(&set_freq_lock);
 
 			/* get the voltage value */
-			safe_arm_volt = exynos_get_safe_armvolt(exynos_info->pm_lock_idx, exynos_info->max_support_idx);
+			safe_arm_volt = exynos_get_safe_armvolt(exynos_info->pm_lock_idx, exynos_info->max_current_idx);
 			if (safe_arm_volt)
 				regulator_set_voltage(arm_regulator, safe_arm_volt,
 					safe_arm_volt + 25000);
 
-			arm_volt = volt_table[exynos_info->max_support_idx];
+			arm_volt = volt_table[exynos_info->max_current_idx];
 			regulator_set_voltage(arm_regulator, arm_volt,
 				arm_volt + 25000);
-			struct cpufreq_policy *policy;
-			enum cpufreq_level_index level;
-			policy = cpufreq_cpu_get(0);
-			exynos_cpufreq_get_level(policy->max, &level);
-			level = max(level, L2);
-			exynos_info->set_freq(exynos_info->pm_lock_idx, level);
+
+			exynos_info->set_freq(exynos_info->pm_lock_idx, exynos_info->max_current_idx);
 
 			mutex_unlock(&set_freq_lock);
 		}
@@ -530,17 +516,30 @@ static int exynos_cpufreq_notifier_event(struct notifier_block *this,
 
 static struct notifier_block exynos_cpufreq_notifier = {
 	.notifier_call = exynos_cpufreq_notifier_event,
+	.priority = INT_MIN, /* done last */
 };
 
 static int exynos_cpufreq_policy_notifier_call(struct notifier_block *this,
 				unsigned long code, void *data)
 {
 	struct cpufreq_policy *policy = data;
+	enum cpufreq_level_index level;
 
 	switch (code) {
 	case CPUFREQ_ADJUST:
-		exynos_cpufreq_lock_disable = !policy->governor->disableScalingDuringSuspend;
-
+		if ((!strnicmp(policy->governor->name, "powersave", CPUFREQ_NAME_LEN))
+		|| (!strnicmp(policy->governor->name, "performance", CPUFREQ_NAME_LEN))
+		|| (!strnicmp(policy->governor->name, "userspace", CPUFREQ_NAME_LEN))) {
+			printk(KERN_DEBUG "cpufreq governor is changed to %s\n",
+							policy->governor->name);
+			exynos_cpufreq_lock_disable = true;
+		} else
+			exynos_cpufreq_lock_disable = false;
+		exynos_cpufreq_get_level(policy->max, &level);
+		if(level!=-EINVAL) exynos_info->max_current_idx = level;
+		exynos_cpufreq_get_level(policy->min, &level);
+		if(level!=-EINVAL) exynos_info->min_current_idx = level;
+		break;
 	case CPUFREQ_INCOMPATIBLE:
 	case CPUFREQ_NOTIFY:
 	default:
@@ -557,6 +556,8 @@ static struct notifier_block exynos_cpufreq_policy_notifier = {
 
 static int exynos_cpufreq_cpu_init(struct cpufreq_policy *policy)
 {
+	int ret;
+
 	policy->cur = policy->min = policy->max = exynos_getspeed(policy->cpu);
 
 	cpufreq_frequency_table_get_attr(exynos_info->freq_table, policy->cpu);
@@ -577,10 +578,10 @@ static int exynos_cpufreq_cpu_init(struct cpufreq_policy *policy)
 		cpumask_setall(policy->cpus);
 	}
 
-	int ret = cpufreq_frequency_table_cpuinfo(policy, exynos_info->freq_table);
+	ret = cpufreq_frequency_table_cpuinfo(policy, exynos_info->freq_table);
 	/* set safe default min and max speeds - netarchy */
-	policy->max = CONFIG_DEFAULT_CLOCK_HIGH * 1000;
-	policy->min = CONFIG_DEFAULT_CLOCK_LOW * 1000;
+	policy->max = exynos_info->freq_table[exynos_info->max_current_idx].frequency;
+	policy->min = exynos_info->freq_table[exynos_info->min_current_idx].frequency;
 	return ret;
 }
 
@@ -605,12 +606,6 @@ static int exynos_cpufreq_reboot_notifier_call(struct notifier_block *this,
 
 static struct notifier_block exynos_cpufreq_reboot_notifier = {
 	.notifier_call = exynos_cpufreq_reboot_notifier_call,
-};
-
-/* Make sure we populate scaling_available_freqs in sysfs - netarchy */
-static struct freq_attr *exynos_cpufreq_attr[] = {
-  &cpufreq_freq_attr_scaling_available_freqs,
-  NULL,
 };
 
 static struct cpufreq_driver exynos_driver = {
@@ -824,3 +819,4 @@ ssize_t store_smooth_offset(struct cpufreq_policy *policy,
 	smooth_offset = level;
 	return count;
 }
+
