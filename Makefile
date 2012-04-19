@@ -245,8 +245,8 @@ CONFIG_SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
 
 HOSTCC       = gcc
 HOSTCXX      = g++
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fomit-frame-pointer
-HOSTCXXFLAGS = -O2
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -Ofast -fomit-frame-pointer
+HOSTCXXFLAGS = -Ofast
 
 # Decide whether to build built-in, modular, or both.
 # Normally, just do built-in.
@@ -347,15 +347,17 @@ CHECK		= sparse
 
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void $(CF)
-SIYAH_FLAGS   = -marm -march=armv7-a -mfloat-abi=hard \
-			   -mcpu=cortex-a9 -mfpu=vfp3 \
-			   -fsched-spec-load -floop-interchange -floop-strip-mine -floop-block \
-			   -ffast-math \
-			   -funswitch-loops -fpredictive-commoning -fgcse-after-reload \
-			   -fipa-cp-clone -pipe \
-			
-CFLAGS_MODULE   =
-AFLAGS_MODULE   =
+MODFLAGS = -Ofast -pipe -marm \
+	   -march=armv7-a -mcpu=cortex-a9 \
+	   -mfloat-abi=hard -mfpu=vfp3 \
+	   -funswitch-loops \
+	   -floop-interchange -floop-strip-mine -floop-block \
+	   -fno-inline-functions -fno-tree-vectorize \
+	   -fmodulo-sched -fmodulo-sched-allow-regmoves \
+	   -fsingle-precision-constant -fsched-spec-load \
+
+CFLAGS_MODULE   =$(MODFLAGS)
+AFLAGS_MODULE   =$(MODFLAGS)
 LDFLAGS_MODULE  =
 CFLAGS_KERNEL	=
 AFLAGS_KERNEL	=
@@ -375,7 +377,7 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -fno-strict-aliasing -fno-common \
 		   -Werror-implicit-function-declaration \
 		   -Wno-format-security \
-		   -fno-delete-null-pointer-checks $(SIYAH_FLAGS)
+		   -fno-delete-null-pointer-checks $(MODFLAGS)
 KBUILD_AFLAGS_KERNEL :=
 KBUILD_CFLAGS_KERNEL :=
 KBUILD_AFLAGS   := -D__ASSEMBLY__

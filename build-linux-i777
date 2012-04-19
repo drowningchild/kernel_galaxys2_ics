@@ -8,6 +8,7 @@ rm $(find kernel/usr/initramfs -name EMPTY_DIRECTORY -print)
 rm -rf $(find kernel/usr/initramfs -name .git -print)
 #Enable FIPS mode
 export USE_SEC_FIPS_MODE=true
+export EXTRA_AFLAGS=-mfpu=neon
 #make dd_i777_defconfig
 make -j8
 echo "Copying Modules"
