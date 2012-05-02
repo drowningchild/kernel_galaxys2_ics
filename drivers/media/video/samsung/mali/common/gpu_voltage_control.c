@@ -18,11 +18,7 @@
 
 #include "gpu_voltage_control.h"
 
-<<<<<<< HEAD
 #define MIN_VOLTAGE_GPU  800000
-=======
-#define MIN_VOLTAGE_GPU  700000
->>>>>>> 45e3f77... Merge branch 'mali'
 #define MAX_VOLTAGE_GPU 1200000
 
 typedef struct mali_dvfs_tableTag{
@@ -49,20 +45,12 @@ static ssize_t gpu_voltage_store(struct device *dev, struct device_attribute *at
 	int i = 0;
 
 	ret = sscanf(buf, "%d %d %d", &gv[0], &gv[1], &gv[2]);
-<<<<<<< HEAD
 	if(ret!=3) 
-=======
-	if(ret!=3)
->>>>>>> 45e3f77... Merge branch 'mali'
 	{
 		ret = sscanf(buf, "%d %d", &gv[0], &gv[1]);
 		if(ret!=2) return -EINVAL;
 	}
-<<<<<<< HEAD
 	
-=======
-
->>>>>>> 45e3f77... Merge branch 'mali'
     /* safety floor and ceiling - netarchy */
     for( i = 0; i < 3; i++ ) {
         if (gv[i] < MIN_VOLTAGE_GPU) {
@@ -70,17 +58,10 @@ static ssize_t gpu_voltage_store(struct device *dev, struct device_attribute *at
         }
         else if (gv[i] > MAX_VOLTAGE_GPU) {
             gv[i] = MAX_VOLTAGE_GPU;
-<<<<<<< HEAD
     	}
 		if(ret==3 || i<2) mali_dvfs[i].vol=gv[i];
     }
 	return count;	
-=======
-	}
-		if(ret==3 || i<2) mali_dvfs[i].vol=gv[i];
-    }
-	return count;
->>>>>>> 45e3f77... Merge branch 'mali'
 }
 
 static DEVICE_ATTR(gpu_control, S_IRUGO | S_IWUGO, gpu_voltage_show, gpu_voltage_store);
