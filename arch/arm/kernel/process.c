@@ -60,7 +60,7 @@ extern void setup_mm_for_reboot(char mode);
 
 static volatile int hlt_counter;
 
-#include <plat/system-reset.h>
+#include <mach/system.h>
 
 #ifdef CONFIG_SMP
 void arch_trigger_all_cpu_backtrace(void)
@@ -208,7 +208,7 @@ static void default_idle(void)
 	if (arm_pm_idle)
 		arm_pm_idle();
 	else
-		cpu_do_idle();
+		arch_idle();
 	local_irq_enable();
 }
 
