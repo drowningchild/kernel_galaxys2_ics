@@ -36,13 +36,21 @@ typedef struct mali_dvfs_staycount{
 }mali_dvfs_staycount_table;
 
 extern mali_dvfs_staycount_table mali_dvfs_staycount[3];
+<<<<<<< HEAD
 		
+=======
+
+>>>>>>> 45e3f77... Merge branch 'mali'
 static ssize_t gpu_clock_show(struct device *dev, struct device_attribute *attr, char *buf) {
 	return sprintf(buf, "Step0: %d\nStep1: %d\nStep2: %d\n"
 						"Threshold0-1/up-down: %d%% %d%%\n"
 						"Threshold1-2/up-down: %d%% %d%%\n",
 		mali_dvfs[0].clock, mali_dvfs[1].clock, mali_dvfs[2].clock,
+<<<<<<< HEAD
 		mali_dvfs_threshold[0].upthreshold*100/255, 
+=======
+		mali_dvfs_threshold[0].upthreshold*100/255,
+>>>>>>> 45e3f77... Merge branch 'mali'
 		mali_dvfs_threshold[1].downthreshold*100/255,
 		mali_dvfs_threshold[1].upthreshold*100/255,
 		mali_dvfs_threshold[2].downthreshold*100/255
@@ -58,7 +66,11 @@ static ssize_t gpu_clock_store(struct device *dev, struct device_attribute *attr
 
 	if ( (ret=sscanf(buf, "%d%% %d%% %d%% %d%%", &g[0], &g[1], &g[2], &g[3])) == 4 ) i=1;
 	else if ( (ret=sscanf(buf, "%d%% %d%%", &g[0], &g[1])) == 2 ) i=1;
+<<<<<<< HEAD
 	
+=======
+
+>>>>>>> 45e3f77... Merge branch 'mali'
 	if(i) {
 		if(g[1]<0 || g[0]>100) return -EINVAL;
 		mali_dvfs_threshold[0].upthreshold = ((int)((255*g[0])/100));
@@ -67,8 +79,13 @@ static ssize_t gpu_clock_store(struct device *dev, struct device_attribute *attr
 			if(g[3]<0 || g[2]>100) return -EINVAL;
 			mali_dvfs_threshold[1].upthreshold = ((int)((255*g[2])/100));
 			mali_dvfs_threshold[2].downthreshold = ((int)((255*g[3])/100));
+<<<<<<< HEAD
 		}		
 	} 
+=======
+		}
+	}
+>>>>>>> 45e3f77... Merge branch 'mali'
 	else {
 	  if ( (ret=sscanf(buf, "%d %d %d", &g[0], &g[1], &g[2]))!=3 )
 	    if( (ret=sscanf(buf, "%d %d", &g[0], &g[1]))!=2 )
@@ -90,11 +107,19 @@ static ssize_t gpu_clock_store(struct device *dev, struct device_attribute *attr
 	{
 		mali_dvfs_threshold[1].upthreshold = ((int)((255*120)/100));
 	}
+<<<<<<< HEAD
 	return count;	
 }
 
 static ssize_t gpu_staycount_show(struct device *dev, struct device_attribute *attr, char *buf) {
 	return sprintf(buf, "%d %d %d\n", 
+=======
+	return count;
+}
+
+static ssize_t gpu_staycount_show(struct device *dev, struct device_attribute *attr, char *buf) {
+	return sprintf(buf, "%d %d %d\n",
+>>>>>>> 45e3f77... Merge branch 'mali'
 	mali_dvfs_staycount[0].staycount,
 	mali_dvfs_staycount[1].staycount,
 	mali_dvfs_staycount[2].staycount
@@ -113,7 +138,11 @@ static ssize_t gpu_staycount_store(struct device *dev, struct device_attribute *
 	mali_dvfs_staycount[0].staycount = i1;
 	mali_dvfs_staycount[1].staycount = i2;
 	mali_dvfs_staycount[2].staycount = i3;
+<<<<<<< HEAD
 	return count;	
+=======
+	return count;
+>>>>>>> 45e3f77... Merge branch 'mali'
 }
 
 static DEVICE_ATTR(gpu_control, S_IRUGO | S_IWUGO, gpu_clock_show, gpu_clock_store);
