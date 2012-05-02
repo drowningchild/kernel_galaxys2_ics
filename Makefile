@@ -193,7 +193,7 @@ SUBARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/sun4u/sparc64/ \
 # Note: Some architectures assign CROSS_COMPILE in their arch/*/Makefile
 export KBUILD_BUILDHOST := $(SUBARCH)
 ARCH		?= arm
-CROSS_COMPILE   ?= /home/tony/toolchain/47/bin/arm-eabi-
+CROSS_COMPILE   ?= /home/tony/toolchain/android-toolchain-eabi/bin/arm-eabi-
 
 # Architecture as present in compile.h
 UTS_MACHINE 	:= $(ARCH)
@@ -347,15 +347,19 @@ CHECK		= sparse
 
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void $(CF)
-XX_A9		= -Ofast -pipe -marm -mtune=cortex-a9 -mfpu=neon -march=armv7-a
-XX_GRAPHITE	= -fgraphite-identity -floop-block -ftree-loop-linear \
-		  -floop-strip-mine -ftree-loop-distribution
-XX_MODULO	= -fmodulo-sched -fmodulo-sched-allow-regmoves
+MODFLAGS = -Ofast -pipe -marm \
+	   -march=armv7-a -mcpu=cortex-a9 \
+	   -mfloat-abi=hard -mfpu=vfp3 \
+	   -funswitch-loops \
+	   -floop-interchange -floop-strip-mine -floop-block \
+	   -fno-inline-functions -fno-tree-vectorize \
+	   -fmodulo-sched -fmodulo-sched-allow-regmoves \
+	   -fsingle-precision-constant -fsched-spec-load \
 
-CFLAGS_MODULE   =$(XX_A9) $(XX_GRAPHITE) $(XX_MODULO)
-AFLAGS_MODULE   =
+CFLAGS_MODULE   =$(MODFLAGS)
+AFLAGS_MODULE   =$(MODFLAGS)
 LDFLAGS_MODULE  =
-CFLAGS_KERNEL	=$(XX_A9) $(XX_GRAPHITE) $(XX_MODULO)
+CFLAGS_KERNEL	=
 AFLAGS_KERNEL	=
 CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage
 
@@ -373,8 +377,7 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -fno-strict-aliasing -fno-common \
 		   -Werror-implicit-function-declaration \
 		   -Wno-format-security \
-		   -fno-delete-null-pointer-checks \
-		    $(XX_A9) $(XX_GRAPHITE) $(XX_MODULO)
+		   -fno-delete-null-pointer-checks $(MODFLAGS)
 KBUILD_AFLAGS_KERNEL :=
 KBUILD_CFLAGS_KERNEL :=
 KBUILD_AFLAGS   := -D__ASSEMBLY__
