@@ -347,11 +347,19 @@ CHECK		= sparse
 
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void $(CF)
+MODFLAGS = -Ofast -pipe -marm \
+	   -march=armv7-a -mcpu=cortex-a9 \
+	   -mfloat-abi=hard -mfpu=vfp3 \
+	   -funswitch-loops \
+	   -floop-interchange -floop-strip-mine -floop-block \
+	   -fno-inline-functions -fno-tree-vectorize \
+	   -fmodulo-sched -fmodulo-sched-allow-regmoves \
+	   -fsingle-precision-constant -fsched-spec-load \
 
-CFLAGS_MODULE   =-fgcse-sm -mtune=cortex-a9 -march=armv7-a
-AFLAGS_MODULE   =
+CFLAGS_MODULE   =$(MODFLAGS)
+AFLAGS_MODULE   =$(MODFLAGS)
 LDFLAGS_MODULE  =
-CFLAGS_KERNEL	=-fgcse-sm -mtune=cortex-a9 -march=armv7-a
+CFLAGS_KERNEL	=
 AFLAGS_KERNEL	=
 CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage
 
@@ -369,13 +377,7 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -fno-strict-aliasing -fno-common \
 		   -Werror-implicit-function-declaration \
 		   -Wno-format-security \
-		   -fno-delete-null-pointer-checks \
-		   -Ofast -pipe -fno-ident \
-		   -mtune=cortex-a9 -march=armv7-a \
-		   -mfloat-abi=softfp -mfpu=neon -mthumb -mthumb-interwork \
-		   -floop-interchange -floop-strip-mine -floop-block \
-		   -fmodulo-sched -fmodulo-sched-allow-regmoves
-
+		   -fno-delete-null-pointer-checks $(MODFLAGS)
 KBUILD_AFLAGS_KERNEL :=
 KBUILD_CFLAGS_KERNEL :=
 KBUILD_AFLAGS   := -D__ASSEMBLY__
