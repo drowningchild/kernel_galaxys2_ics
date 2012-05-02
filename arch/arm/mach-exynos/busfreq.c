@@ -611,8 +611,6 @@ static ssize_t show_busfreq_level(struct kobject *kobj,
 static struct global_attr busfreq_level_attr = __ATTR(busfreq_current_level,
 		S_IRUGO, show_busfreq_level, NULL);
 
-<<<<<<< HEAD
-=======
 static ssize_t show_busfreq_asv_group(struct kobject *kobj,
 		struct attribute *attr, char *buf)
 {
@@ -680,7 +678,6 @@ static ssize_t store_busfreq_down_threshold(struct kobject *kobj,
 static struct global_attr busfreq_down_threshold_attr = __ATTR(busfreq_down_threshold,
 		0644, show_busfreq_down_threshold, store_busfreq_down_threshold);
 
->>>>>>> 9ed8631... mach-exynos: busfreq: Add options for up- and down threshold
 static int __init busfreq_mon_init(void)
 {
 	unsigned int i;
@@ -817,8 +814,6 @@ static int __init busfreq_mon_init(void)
 
 	if (sysfs_create_file(cpufreq_global_kobject, &busfreq_level_attr.attr))
 		pr_err("Failed to create sysfs file(level)\n");
-<<<<<<< HEAD
-=======
 
 	if (sysfs_create_file(cpufreq_global_kobject, &busfreq_asv_group_attr.attr))
 		pr_err("Failed to create sysfs file(asv_group)\n");
@@ -829,7 +824,6 @@ static int __init busfreq_mon_init(void)
 	if (sysfs_create_file(cpufreq_global_kobject, &busfreq_down_threshold_attr.attr))
 		pr_err("Failed to create sysfs file(down_threshold)\n");
 
->>>>>>> 9ed8631... mach-exynos: busfreq: Add options for up- and down threshold
 	return 0;
 err_pm:
 	cpufreq_unregister_notifier(&exynos4_busfreq_notifier,
