@@ -764,11 +764,13 @@ ssize_t store_UV_mV_table(struct cpufreq_policy *policy,
 				u[i] = CPU_UV_MV_MIN / 1000;
 			}
 		}
-	}
-
-	for( i = 6 - ret; i < 6; i++)
-	{
-		exynos_info->volt_table[i] = u[i]*1000;
-	}
-	return count;
+		if(ret >= 7) exynos_info->volt_table[0] = u[0] * 1000;
+		exynos_info->volt_table[1] = u[1] * 1000; 
+		exynos_info->volt_table[2] = u[2] * 1000;
+		exynos_info->volt_table[3] = u[3] * 1000; 
+		exynos_info->volt_table[4] = u[4] * 1000;
+		exynos_info->volt_table[5] = u[5] * 1000; 
+		exynos_info->volt_table[6] = u[6] * 1000;
+		if(ret == 8) exynos_info->volt_table[7] = u[7] * 1000;
+		return count;
 }
