@@ -347,20 +347,20 @@ CHECK		= sparse
 
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void $(CF)
-MODFLAGS = -Ofast -pipe -marm \
+MODFLAGS = -Ofast -pipe -marm -mthumb-interwork \
 	   -march=armv7-a -mcpu=cortex-a9 \
-	   -mfloat-abi=softfp -mfpu=vfp3 \
-	   -funswitch-loops \
+	   -mfloat-abi=softfp -mfpu=neon \
+	   -funroll-loops \
 	   -floop-interchange -floop-strip-mine -floop-block \
 	   -fno-inline-functions -fno-tree-vectorize \
 	   -fmodulo-sched -fmodulo-sched-allow-regmoves \
-	   -fsingle-precision-constant -fsched-spec-load \
+	   -fsched-spec-load \
 
-CFLAGS_MODULE   =
-AFLAGS_MODULE   =
+CFLAGS_MODULE   =$(MODFLAGS)
+AFLAGS_MODULE   =$(MODFLAGS)
 LDFLAGS_MODULE  =
-CFLAGS_KERNEL	=
-AFLAGS_KERNEL	=
+CFLAGS_KERNEL	=$(MODFLAGS)
+AFLAGS_KERNEL	=$(MODFLAGS)
 CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage
 
 
