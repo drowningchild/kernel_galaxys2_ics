@@ -760,6 +760,63 @@ ssize_t store_UV_mV_table(struct cpufreq_policy *policy,
 				u[i] = CPU_UV_MV_MAX / 1000;
 			}
 			else if (u[i] < CPU_UV_MV_MIN / 1000)
+		}
+		else
+			break;
+	}
+	
+	//find number of available steps
+	for(i = exynos_info->max_support_idx; i<=exynos_info->min_support_idx; i++)
+	{
+		if(exynos_info->freq_table[i].frequency==CPUFREQ_ENTRY_INVALID) continue;
+		stepcount++;
+	}
+	//do not keep backward compatibility for scripts this time.
+	//I want the number of tokens to be exactly the same with stepcount -gm
+	if(stepcount != tokencount) return -EINVAL;
+	
+	//we have u[0] starting from the first available frequency to u[stepcount]
+	//that is why we use an additiona j here...
+	for(j=0, i = exynos_info->max_support_idx; i<=exynos_info->min_support_idx; i++)
+	{
+		if(exynos_info->freq_table[i].frequency==CPUFREQ_ENTRY_INVALID) continue;
+		if (u[j] > CPU_UV_MV_MAX / 1000)
+		{
+			u[j] = CPU_UV_MV_MAX / 1000;
+		}
+		else if (u[j] < CPU_UV_MV_MIN / 1000)
+		{
+			u[j] = CPU_UV_MV_MIN / 1000;
+		}
+		exynos_info->volt_table[i] = u[j]*1000;
+		j++;
+	}
+	return count;
+}
+
+ssize_t store_available_freqs_exynos4210(struct cpufreq_policy *policy,
+		     const char *buf, size_t count)
+{
+	int u[18] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	int f[18] = {1600,1500,1400,1300,1200,1100,1000,900,800,700,600,500,400,300,200,100,50,25};
+	int i, j, tokencount = 0, ret = 0;
+	
+	if(count < 1) return -EINVAL;
+
+	//parse input
+	for(j = 0, i = 0; i < count; i++)
+	{
+		char c = buf[i];
+		if(c >= '0' && c <= '9')
+		{
+			if(tokencount < j + 1) tokencount = j + 1;
+			u[j] *= 10;
+			u[j] += (c - '0');
+		}
+		else if(c == ' ' || c == '\t')
+		{
+			if(u[j] != 0)
+>>>>>>> 732f2a3... mach-exynos: cpufreq: it is not wise to ignore warnings, especially when you use -Os.
 			{
 				u[i] = CPU_UV_MV_MIN / 1000;
 			}
