@@ -348,15 +348,15 @@ CHECK		= sparse
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void $(CF)
 MODFLAGS = -Ofast -pipe -marm -mthumb-interwork \
-	   -march=armv7-a -mcpu=cortex-a9 \
+	   -march=armv7-a -mtune=cortex-a9 \
 	   -mfloat-abi=softfp -mfpu=vfp3 \
 	   -floop-interchange -floop-strip-mine -floop-block \
 	   -fno-inline-functions -fno-tree-vectorize \
 	   -fmodulo-sched -fmodulo-sched-allow-regmoves \
 	   -fsched-spec-load \
 
-CFLAGS_MODULE   =$(MODFLAGS)
-AFLAGS_MODULE   =$(MODFLAGS)
+CFLAGS_MODULE   =-DMODULE $(MODFLAGS)
+AFLAGS_MODULE   =-DMODULE $(MODFLAGS)
 LDFLAGS_MODULE  =
 CFLAGS_KERNEL	=$(MODFLAGS)
 AFLAGS_KERNEL	=$(MODFLAGS)
